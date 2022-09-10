@@ -1,18 +1,18 @@
 #include <stdio.h>
 /**
-* main - print if the number is postive, zero, or negative
-*
-* Description: using the main function
-* this program prints "Programming is positive, zero, or negative
-* Return: 0
-*/
+ * main - print if the number is postive, zero, or negative
+ *
+ * Description: using the main function
+ * this program prints "Programming is positive, zero, or negative
+ * Return: 0
+ */
 int main(void)
 {
-int i;
-for (i = 0; i < 10; i++)
+int n;
+for (n = 0; n <= 9; n++)
 {
-putchar(n);
+printf("%i", i)
 }
 putchar('\n');
-return(0);
+return (0);
 }
