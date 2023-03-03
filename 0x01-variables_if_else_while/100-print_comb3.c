@@ -24,12 +24,8 @@ int main(void)
             {
                 if ((i != 0) || (j != 0))
                 {
-                    putchar(i / 10 + '0');
-                    putchar(i % 10 + '0');
-                    putchar(',');
-                    putchar(' ');
-                    putchar(j / 10 + '0');
-                    putchar(j % 10 + '0');
+                    printf("%d%d, ", i / 10, i % 10);
+                    printf("%d%d", j / 10, j % 10);
 
                     if ((i != 98) || (j != 99))
                     {
@@ -44,6 +40,6 @@ int main(void)
 
         i++;
     }
-    
+
     return (0);
 }
