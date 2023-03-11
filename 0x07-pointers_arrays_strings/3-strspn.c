@@ -26,10 +26,11 @@ unsigned int _strspn(char *s, char *accept)
 				break;
 			}
 		}
+
 		if (!accept[j])
-			{
-				return count;
-			}
+		{
+			return (count);
+		}
 	}
 	return (count);
 }
