@@ -2,14 +2,13 @@
 #include <stdio.h>
 
 /**
- * *_strspn - gets the length of a prefix substring.
+ * *_strspn -  searches a string for any of a set of bytes.
  * @s: string to evaluate
  * @accept: string containing list of characters to match in s
  *
- * Return: the number of bytes in the initial segment
- * of s which consist only of bytes from accept
+ * Return: a pointer to the byte in s that matches one of the bytes in accept, or NULL if no such byte is found
  */
-unsigned int _strspn(char *s, char *accept)
+char *_strpbrk(char *s, char *accept)
 {
 	unsigned int count = 0;
 	int i, j;
@@ -20,14 +19,9 @@ unsigned int _strspn(char *s, char *accept)
 		{
 			if (s[i] == accept[j])
 			{
-				count++;
-				break;
+				return (&s[i]);
 			}
 		}
-		if (!accept[j])
-			{
-				return count;
-			}
 	}
-	return (count);
+	return (NULL);
 }
