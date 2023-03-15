@@ -11,20 +11,20 @@
  */
 int main(int argc, char *argv[])
 {
-    int result;
-    if (argc <= 2)
-    {
-        printf("Error\n");
-        return (1);
-    }
-    else
-    {
-        int x = atoi(argv[1]);
-        int y = atoi(argv[2]);
+int result;
+if (argc <= 2)
+{
+printf("Error\n");
+return (1);
+}
+else
+{
+int x = atoi(argv[1]);
+int y = atoi(argv[2]);
 
-        result = x * y;
-        printf("%d\n", result);
-    }
+result = x * y;
+printf("%d\n", result);
+}
 
-    return (0);
+return (0);
 }
