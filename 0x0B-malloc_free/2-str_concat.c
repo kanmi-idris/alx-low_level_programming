@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 /**
- * str_concat() - returns a pointer to a space in memory.
+ * _str_concat() - returns a pointer to a space in memory.
  * @s1: string
  * @s2: string
  *
