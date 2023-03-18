@@ -10,38 +10,41 @@
  */
 char *str_concat(char *s1, char *s2)
 {
-    char *store;
-    int i = 0, j = 0, total_len;
-    if (s1 == NULL)
-    {
-        s1 = "";
-    }
-    if (s2 == NULL)
-    {
-        s2 = "";
-    }
-    while (s1[i] || s2[i])
-    {
-        i++;
-    }
-    total_len = i;
-    store = malloc(sizeof(char) * (total_len + 1));
-    if (store == NULL)
-    {
-        return (NULL);
-    }
-    while (s1[i])
-    {
-        store[i] = s1[i];
-        i++;
-    }
-    while (s2[j])
-    {
-        store[i] = s2[j];
-        i++;
-        j++;
-    }
-    store[total_len] = '\0';
+char *store;
+int i = 0, lenS1 = 0, lenS2 = 0, total_len;
+if (s1 == NULL)
+{
+s1 = "";
+}
+if (s2 == NULL)
+{
+s2 = "";
+}
+while (s1[lenS1] != '\0')
+{
+lenS1++;
+}
+while (s2[lenS2] != '\0')
+{
+lenS2++;
+}
+total_len = lenS1 + lenS2;
+store = malloc(sizeof(char) * (total_len + 1));
+if (store == NULL)
+{
+return (NULL);
+}
+while (i < (lenS1))
+{
+store[i] = s1[i];
+i++;
+}
+while (i < (lenS2))
+{
+store[i + lenS1] = s2[i];
+i++;
+}
+store[total_len] = '\0';
 
-    return (store);
+return (store);
 }
