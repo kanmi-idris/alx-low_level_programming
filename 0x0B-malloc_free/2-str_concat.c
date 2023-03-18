@@ -34,11 +34,13 @@ if (store == NULL)
 {
 return (NULL);
 }
+i = 0;
 while (i < (lenS1))
 {
 store[i] = s1[i];
 i++;
 }
+i = 0;
 while (i < (lenS2))
 {
 store[i + lenS1] = s2[i];
