@@ -19,9 +19,7 @@ while (str[len] != '\0')
 {
 len++;
 }
-    
 nstr = malloc(sizeof(char) * len);
-
 if (nstr == NULL)
 {
 return (NULL);
@@ -31,6 +29,6 @@ while (i < len)
 nstr[i] = str[i];
 i++;
 }
-    
+
 return (nstr);
 }
