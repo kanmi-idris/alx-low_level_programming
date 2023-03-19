@@ -10,34 +10,35 @@
  */
 int **alloc_grid(int width, int height)
 {
-int **arr, i, j;
+    int **grid, i, j;
 
-if (width < 1 || height < 1)
-return (NULL);
+    if (width < 1 || height < 1)
+        return (NULL);
 
-arr = malloc(sizeof(int *) * height);
-if (!arr)
-return (NULL);
+    grid = malloc(sizeof(int *) * height);
+    if (grid == NULL)
+        return (NULL);
 
-arr = malloc(sizeof(int) * width);
+    for (i = 0; i < height; i++)
+    {
+        grid[i] = malloc(sizeof(int) * width);
+        if (grid[i] == NULL)
+        {
+            for (j = 0; j < i; j++)
+            {
+                free(grid[j]);
+            }
+            free(grid);
+            return (NULL);
+        }
+    }
+    for (i = 0; i < height; i++)
+    {
+        for (j = 0; j < width; j++)
+        {
+            grid[i][j] = 0;
+        }
+    }
 
-for (i = 0; i < height; i++)
-{
-arr[i] = malloc(sizeof(int) * width);
-if (!arr[i])
-{
-for (j = 0; j < i; j++)
-{
-free(arr[j]);
-}
-free(arr[i]);
-return (NULL);
-}
-for (j = 0; j < width; j++)
-{
-arr[i][j] = 0;
-}
-}
-
-return (arr);
+    return (grid);
 }
