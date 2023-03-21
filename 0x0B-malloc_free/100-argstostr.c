@@ -25,7 +25,7 @@ len++;
 len++;
 }
 
-concat = malloc(sizeof(char) * len);
+concat = malloc(sizeof(char) * (len + 1));
 if (concat == NULL)
 {
 return (NULL);
