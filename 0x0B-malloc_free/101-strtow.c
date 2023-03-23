@@ -18,6 +18,8 @@ for (i = 0; str[i]; i++)
 if (str[i] != ' ' && (i == 0 || str[i - 1] == ' '))
 num_words++;
 }
+if (num_words == 0)
+return (NULL);
 words = malloc(sizeof(char *) * (num_words + 1));
 if (words == NULL)
 return (NULL);
@@ -32,7 +34,7 @@ words[j] = malloc(sizeof(char) * (len + 1));
 if (words[j] == NULL)
 {
 for (i = 0; i < j; i++)
-free(words[i]);
+free(words[i]); 
 free(words);
 return (NULL);
 }
