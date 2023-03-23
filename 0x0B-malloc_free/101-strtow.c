@@ -34,7 +34,7 @@ words[j] = malloc(sizeof(char) * (len + 1));
 if (words[j] == NULL)
 {
 for (i = 0; i < j; i++)
-free(words[i]); 
+free(words[i]);
 free(words);
 return (NULL);
 }
