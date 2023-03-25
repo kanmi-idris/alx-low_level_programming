@@ -2,12 +2,12 @@
 #include <stdlib.h>
 
 /**
-*	string_nconcat - function that concatenates two strings
-*	@s1: initial string to be concatenated
-*	@s2: second string to be concatenated
-*	@n: integer to limit amount of s2 to be concatenated
+*string_nconcat - function that concatenates two strings
+*@s1: initial string to be concatenated
+*@s2: second string to be concatenated
+*@n: integer to limit amount of s2 to be concatenated
 *
-*	Return: pointer to a newly allocated space in memory.
+*Return: pointer to a newly allocated space in memory.
 */
 char *string_nconcat(char *s1, char *s2, unsigned int n)
 {
