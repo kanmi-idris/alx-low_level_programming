@@ -22,7 +22,7 @@ return (NULL);
 
 for (i = 0; i <= max - min; i++)
 {
-array[i] = min++;
+array[i] = min + i;
 }
 
 return (array);
