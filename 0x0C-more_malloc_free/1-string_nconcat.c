@@ -32,7 +32,7 @@ for (i = len_s2; s2[i]; i++)
 len_s2++;
 }
 
-str_len = len_s1 + (len_s2 < n ? len_s2 : n);
+str_len = len_s1 + (n >= len_s2 ? len_s2 : n);
 memory = malloc(sizeof(char) * (str_len + 1));
 if (memory == NULL)
 return (NULL);
