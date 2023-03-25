@@ -16,7 +16,7 @@ int i;
 if (min > max)
 return (NULL);
 
-array = malloc(max * sizeof(int));
+array = malloc((max - min + 1) * sizeof(int));
 if (!array)
 return (NULL);
 
