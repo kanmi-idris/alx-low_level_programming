@@ -21,7 +21,7 @@ if (d->name == NULL)
 {
 printf("Name: (nil)\n");
 }
-else 
+else
 {
 printf("Name: %s\n", d->name);
 }
@@ -36,5 +36,4 @@ else
 {
 printf("Owner: %s\n", d->owner);
 }
-
 }
