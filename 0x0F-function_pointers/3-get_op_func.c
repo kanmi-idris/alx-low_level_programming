@@ -10,25 +10,16 @@
 
 int (*get_op_func(char *s))(int, int)
 {
-if (strcmp(s, "+") == 0)
+op_t ops[] = {{"+", op_add}, {"-", op_sub}, {"*", op_mul},
+														{"/", op_div}, {"%", op_mod}, {NULL, NULL}};
+int i;
+
+for (i = 0; ops[i].op != NULL; i++)
 {
-return (op_add);
+if (strcmp(s, ops[i].op) == 0)
+{
+return (ops[i].f);
 }
-else if (strcmp(s, "-") == 0)
-{
-return (op_sub);
-}
-else if (strcmp(s, "*") == 0)
-{
-return (op_mul);
-}
-else if (strcmp(s, "/") == 0)
-{
-return (op_div);
-}
-else if (strcmp(s, "%") == 0)
-{
-return (op_mod);
 }
 
 return (NULL);
