@@ -22,7 +22,7 @@ while (i < n)
 char *str = va_arg(print_str, char *);
 if (str == NULL)
 {
-printf("nil");
+printf("(nil)");
 }
 else
 {
