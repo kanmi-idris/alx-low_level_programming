@@ -4,35 +4,47 @@
 
 /**
  * print_all - prints anything
- * @n: no of integers to be passed
- * @separator: string to be printed between numbers
+ * @format: list of types of arguments passed to the function
  *
- * Return: 0 (successful)
+ * Return: void
  */
 
-void print_all(const char * const format, ...)
+void print_all(const char *const format, ...)
 {
-unsigned int i = 0;
-va_list(print_str);
-va_start(print_str, n);
+int i = 0;
+char *sep = "";
 
-while (i < n)
+va_list print_all;
+va_start(print_all, format);
+
+while (format && format[i])
 {
-
-char *str = va_arg(print_str, char *);
+switch (format[i])
+{
+case 'c':
+printf("%s%c", sep, va_arg(print_all, int));
+break;
+case 'i':
+printf("%s%d", sep, va_arg(print_all, int));
+break;
+case 'f':
+printf("%s%f", sep, va_arg(print_all, double));
+break;
+case 's':
+{
+char *str = va_arg(print_all, char *);
 if (str == NULL)
-{
-printf("nil");
+str = "(nil)";
+printf("%s%s", sep, str);
+break;
 }
-else
-{
-printf("%s", str);
-if (i < n - 1 && separator != NULL)
-printf("%s", separator);
+default:
+i++;
+continue;
 }
-
+sep = ", ";
 i++;
 }
 printf("\n");
-va_end(print_str);
+va_end(print_all);
 }
