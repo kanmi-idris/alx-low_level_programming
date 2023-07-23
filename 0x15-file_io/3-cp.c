@@ -1,42 +1,115 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
+#define BUFSIZE 1024
+#define USAGE "Usage: cp file_from file_to\n"
+#define READ_ERROR "Error: Can't read from file %s\n"
+#define WRITE_ERROR "Error: Can't write to %s\n"
+#define CLOSE_ERROR "Error: Can't close fd %d\n"
+
+/**
+ * open_files - opens the source and destination files
+ * @file_from: name of the source file
+ * @file_to: name of the destination file
+ * Return: an array of file descriptors, or NULL on failure
+ */
+int *open_files(char *file_from, char *file_to)
+{
+	int *fds;
+	mode_t mode;
+
+	fds = malloc(sizeof(int) * 2);
+	if (fds == NULL)
+		return (NULL);
+	fds[0] = open(file_from, O_RDONLY);
+	if (fds[0] == -1)
+	{
+		dprintf(STDERR_FILENO, READ_ERROR, file_from);
+		free(fds);
+		exit(98);
+	}
+	mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+	fds[1] = open(file_to, O_WRONLY | O_CREAT | O_TRUNC, mode);
+	if (fds[1] == -1)
+	{
+		dprintf(STDERR_FILENO, WRITE_ERROR, file_to);
+		close(fds[0]);
+		free(fds);
+		exit(99);
+	}
+	return (fds);
+}
+
+/**
+ * close_files - closes the source and destination files
+ * @fds: array of file descriptors
+ */
+void close_files(int *fds)
+{
+	if (close(fds[0]) == -1)
+	{
+		dprintf(STDERR_FILENO, CLOSE_ERROR, fds[0]);
+		close(fds[1]);
+		free(fds);
+		exit(100);
+	}
+	if (close(fds[1]) == -1)
+	{
+		dprintf(STDERR_FILENO, CLOSE_ERROR, fds[1]);
+		free(fds);
+		exit(100);
+	}
+	free(fds);
+}
+
+/**
+ * copy_content - copies the content of a file to another file
+ * @fds: array of file descriptors
+ */
+void copy_content(int *fds)
+{
+	int rcount, wcount;
+	char buffer[BUFSIZE];
+
+	while ((rcount = read(fds[0], buffer, BUFSIZE)) > 0)
+	{
+		wcount = write(fds[1], buffer, rcount);
+		if (wcount != rcount)
+		{
+			dprintf(STDERR_FILENO, WRITE_ERROR, argv[2]);
+			close_files(fds);
+			exit(99);
+		}
+	}
+	if (rcount == -1)
+	{
+		dprintf(STDERR_FILENO, READ_ERROR, argv[1]);
+		close_files(fds);
+		exit(98);
+	}
+}
+
+/**
+ * main - copies the content of a file to another file
+ * @argc: number of arguments
+ * @argv: array of arguments
+ * Return: 0 on success, exit with code on failure
+ */
 int main(int argc, char *argv[])
 {
-	char buffer[1024];
-	size_t bytes_read;
-	FILE *file_to;
-	FILE *file_from;
+	int *fds;
 
 	if (argc != 3)
 	{
-		dprintf(2, "Usage: cp file_from file_to\n");
+		dprintf(STDERR_FILENO, USAGE);
 		exit(97);
 	}
-
-	file_from = fopen(argv[1], "r");
-	if (file_from == NULL)
-	{
-		dprintf(2, "Error: Can't read from file %s\n", argv[1]);
-		exit(98);
-	}
-
-	file_to = fopen(argv[2], "w");
-	if (file_to == NULL)
-	{
-		dprintf(2, "Error: Can't write to file %s\n", argv[2]);
-		exit(99);
-	}
-
-
-	while ((bytes_read = fread(buffer, 1, sizeof(buffer), file_from)) > 0)
-	{
-		fwrite(buffer, 1, bytes_read, file_to);
-	}
-
-	fclose(file_from);
-	fclose(file_to);
-
-	return 0;
+	fds = open_files(argv[1], argv[2]);
+	copy_content(fds);
+	close_files(fds);
+	return (0);
 }
