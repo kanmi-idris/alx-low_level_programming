@@ -1,4 +1,6 @@
+#include <elf.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,38 +8,13 @@
 
 #define ELF_MAGIC_SIZE 16
 
-typedef struct
-{
-	unsigned char magic[ELF_MAGIC_SIZE];
-	unsigned char class;
-	unsigned char data;
-	unsigned char version;
-	unsigned char os_abi;
-	unsigned char abi_version;
-	unsigned char pad[7];
-	unsigned short type;
-	unsigned short machine;
-	unsigned int version2;
-	unsigned int entry_point_high;
-	unsigned int entry_point_low;
-	unsigned int ph_offset;
-	unsigned int sh_offset;
-	unsigned int flags;
-	unsigned short eh_size;
-	unsigned short ph_entry_size;
-	unsigned short ph_num;
-	unsigned short sh_entry_size;
-	unsigned short sh_num;
-	unsigned short sh_str_index;
-} ElfHeader;
-
 void print_error(const char *message)
 {
 	fprintf(stderr, "Error: %s\n", message);
 	exit(98);
 }
 
-void print_elf_header(const ElfHeader *header)
+void print_elf_header(const Elf64_Ehdr *header)
 {
 	int i;
 
@@ -45,86 +22,92 @@ void print_elf_header(const ElfHeader *header)
 	printf("  Magic:");
 	for (i = 0; i < ELF_MAGIC_SIZE; ++i)
 	{
-		printf(" %02x", header->magic[i]);
+		printf(" %02x", header->e_ident[i]);
 	}
 	printf("\n");
 
 	printf("  Class:                             ");
-	switch (header->class)
+	switch (header->e_ident[EI_CLASS])
 	{
-	case 1:
+	case ELFCLASS32:
 		printf("ELF32\n");
 		break;
-	case 2:
+	case ELFCLASS64:
 		printf("ELF64\n");
 		break;
 	default:
-		printf("<unknown: %02x>\n", header->class);
+		printf("<unknown: %02x>\n", header->e_ident[EI_CLASS]);
 		break;
 	}
 
 	printf("  Data:                              ");
-	switch (header->data)
+	switch (header->e_ident[EI_DATA])
 	{
-	case 1:
+	case ELFDATA2LSB:
 		printf("2's complement, little endian\n");
 		break;
-	case 2:
+	case ELFDATA2MSB:
 		printf("2's complement, big endian\n");
 		break;
 	default:
-		printf("<unknown: %02x>\n", header->data);
+		printf("<unknown: %02x>\n", header->e_ident[EI_DATA]);
 		break;
 	}
 
 	printf("  Version:                           %u (current)\n",
-		   header->version);
+		   header->e_ident[EI_VERSION]);
 
 	printf("  OS/ABI:                            ");
-	switch (header->os_abi)
+	switch (header->e_ident[EI_OSABI])
 	{
-	case 0:
+	case ELFOSABI_SYSV:
 		printf("UNIX - System V\n");
 		break;
-	case 3:
+	case ELFOSABI_NETBSD:
 		printf("UNIX - NetBSD\n");
 		break;
-	case 6:
+	case ELFOSABI_SOLARIS:
 		printf("UNIX - Solaris\n");
 		break;
 	default:
-		printf("<unknown: %02x>\n", header->os_abi);
+		printf("<unknown: %02x>\n", header->e_ident[EI_OSABI]);
 		break;
 	}
 
-	printf("  ABI Version:                       %u\n", header->abi_version);
+	printf("  ABI Version:                       %u\n",
+		   header->e_ident[EI_ABIVERSION]);
 
 	printf("  Type:                              ");
-	switch (header->type)
+	switch (header->e_type)
 	{
-	case 1:
+	case ET_REL:
 		printf("REL (Relocatable file)\n");
 		break;
-	case 2:
+	case ET_EXEC:
 		printf("EXEC (Executable file)\n");
 		break;
-	case 3:
+	case ET_DYN:
 		printf("DYN (Shared object file)\n");
 		break;
 	default:
-		printf("<unknown: %04x>\n", header->type);
+		printf("<unknown: %04x>\n", header->e_type);
 		break;
 	}
 
-	printf("  Entry point address:               0x%08x%08x\n",
-		   header->entry_point_high, header->entry_point_low);
+	printf("  Entry point address:               0x%" PRIx64 "\n",
+		   header->e_entry);
 }
 
 int main(int argc, char *argv[])
 {
 	const char *filename;
 	int fd;
-	ElfHeader header;
+	union
+	{
+		Elf32_Ehdr ehdr32;
+		Elf64_Ehdr ehdr64;
+	} header;
+
 	unsigned char elf_magic[] = {0x7F, 'E', 'L', 'F'};
 
 	if (argc != 2)
@@ -139,21 +122,34 @@ int main(int argc, char *argv[])
 		print_error("Failed to open the file");
 	}
 
-	if (read(fd, &header, sizeof(ElfHeader)) != sizeof(ElfHeader))
+	if (read(fd, &header, sizeof(header)) != sizeof(header))
 	{
 		close(fd);
 		print_error("Failed to read ELF header");
 	}
 
 	/* Verify the ELF magic number */
-	if (memcmp(header.magic, elf_magic, ELF_MAGIC_SIZE) != 0)
+	if (memcmp(header.ehdr64.e_ident, elf_magic, ELF_MAGIC_SIZE) != 0)
 	{
 		close(fd);
 		print_error("Not an ELF file");
 	}
 
-	print_elf_header(&header);
+	/* Print the ELF header depending on the class */
+	if (header.ehdr64.e_ident[EI_CLASS] == ELFCLASS32)
+	{
+		print_elf_header((Elf64_Ehdr *)&header.ehdr32);
+	}
+	else if (header.ehdr64.e_ident[EI_CLASS] == ELFCLASS64)
+	{
+		print_elf_header(&header.ehdr64);
+	}
+	else
+	{
+		close(fd);
+		print_error("Unknown ELF class");
+	}
 
 	close(fd);
-	return 0;
+	return (0);
 }
