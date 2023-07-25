@@ -2,18 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-/**
- * struct file - a struct that contains a file descriptor and a file name
- *
- * @fd: the file descriptor
- * @name: the file name
- */
-typedef struct file
-{
-	int fd;
-	char *name;
-} file_t;
+#include "main.h"
 
 /**
  * open_files - opens the files to copy
@@ -41,6 +30,7 @@ file_t *open_files(char *file_from, char *file_to)
 	{
 		dprintf(2, "Error: Can't read from file %s\n", file_from);
 		free(fd);
+		dprintf(2, "98\n");
 		exit(98);
 	}
 
@@ -48,6 +38,7 @@ file_t *open_files(char *file_from, char *file_to)
 	{
 		dprintf(2, "Error: Can't write to %s\n", file_to);
 		free(fd);
+		dprintf(2, "99\n");
 		exit(99);
 	}
 
@@ -72,6 +63,7 @@ void copy_content(file_t *fd)
 		{
 			dprintf(2, "Error: Can't write to %s\n", fd[1].name);
 			free(fd);
+			dprintf(2, "99\n");
 			exit(99);
 		}
 	}
@@ -80,6 +72,7 @@ void copy_content(file_t *fd)
 	{
 		dprintf(2, "Error: Can't read from file %s\n", fd[0].name);
 		free(fd);
+		dprintf(2, "98\n");
 		exit(98);
 	}
 }
@@ -98,6 +91,7 @@ void close_files(file_t *fd)
 	{
 		dprintf(2, "Error: Can't close fd %d\n", fd[0].fd);
 		free(fd);
+		dprintf(2, "100\n");
 		exit(100);
 	}
 
@@ -106,6 +100,7 @@ void close_files(file_t *fd)
 	{
 		dprintf(2, "Error: Can't close fd %d\n", fd[1].fd);
 		free(fd);
+		dprintf(2, "100\n");
 		exit(100);
 	}
 

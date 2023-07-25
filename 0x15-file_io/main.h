@@ -3,6 +3,17 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+/**
+ * struct file - a struct that contains a file descriptor and a file name
+ *
+ * @fd: the file descriptor
+ * @name: the file name
+ */
+typedef struct file
+{
+	int fd;
+	char *name;
+} file_t;
 
 int _putchar(char c);
 ssize_t read_textfile(const char *filename, size_t letters);
