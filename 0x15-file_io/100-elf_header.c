@@ -7,14 +7,23 @@
 #include <unistd.h>
 
 #define ELF_MAGIC_SIZE 16
+#define UNKNOWN "<unknown: %02x>\n"
 
+/**
+ * print_error - prints an error message and exits
+ * @message: the error message to print
+ */
 void print_error(const char *message)
 {
-	fprintf(stderr, "Error: %s\n", message);
+	perror(message);
 	exit(98);
 }
 
-void print_elf_header(const Elf64_Ehdr *header)
+/**
+ * print_magic - prints an error message and exits
+ * @e_ident: the error message to print
+ */
+void print_magic(const unsigned char *e_ident)
 {
 	int i;
 
@@ -22,12 +31,19 @@ void print_elf_header(const Elf64_Ehdr *header)
 	printf("  Magic:");
 	for (i = 0; i < ELF_MAGIC_SIZE; ++i)
 	{
-		printf(" %02x", header->e_ident[i]);
+		printf(" %02x", e_ident[i]);
 	}
 	printf("\n");
+}
 
+/**
+ * print_class - prints an error message and exits
+ * @e_ident: the error message to print
+ */
+void print_class(const unsigned char *e_ident)
+{
 	printf("  Class:                             ");
-	switch (header->e_ident[EI_CLASS])
+	switch (e_ident[EI_CLASS])
 	{
 	case ELFCLASS32:
 		printf("ELF32\n");
@@ -36,12 +52,19 @@ void print_elf_header(const Elf64_Ehdr *header)
 		printf("ELF64\n");
 		break;
 	default:
-		printf("<unknown: %02x>\n", header->e_ident[EI_CLASS]);
+		printf(UNKNOWN, e_ident[EI_CLASS]);
 		break;
 	}
+}
 
+/**
+ * print_data - prints an error message and exits
+ * @e_ident: the error message to print
+ */
+void print_data(const unsigned char *e_ident)
+{
 	printf("  Data:                              ");
-	switch (header->e_ident[EI_DATA])
+	switch (e_ident[EI_DATA])
 	{
 	case ELFDATA2LSB:
 		printf("2's complement, little endian\n");
@@ -50,15 +73,29 @@ void print_elf_header(const Elf64_Ehdr *header)
 		printf("2's complement, big endian\n");
 		break;
 	default:
-		printf("<unknown: %02x>\n", header->e_ident[EI_DATA]);
+		printf(UNKNOWN, e_ident[EI_DATA]);
 		break;
 	}
+}
 
+/**
+ * print_version - prints an error message and exits
+ * @e_ident: the error message to print
+ */
+void print_version(const unsigned char *e_ident)
+{
 	printf("  Version:                           %u (current)\n",
-		   header->e_ident[EI_VERSION]);
+		   e_ident[EI_VERSION]);
+}
 
+/**
+ * print_osabi - prints an error message and exits
+ * @e_ident: the error message to print
+ */
+void print_osabi(const unsigned char *e_ident)
+{
 	printf("  OS/ABI:                            ");
-	switch (header->e_ident[EI_OSABI])
+	switch (e_ident[EI_OSABI])
 	{
 	case ELFOSABI_SYSV:
 		printf("UNIX - System V\n");
@@ -70,15 +107,28 @@ void print_elf_header(const Elf64_Ehdr *header)
 		printf("UNIX - Solaris\n");
 		break;
 	default:
-		printf("<unknown: %02x>\n", header->e_ident[EI_OSABI]);
+		printf(UNKNOWN, e_ident[EI_OSABI]);
 		break;
 	}
+}
 
-	printf("  ABI Version:                       %u\n",
-		   header->e_ident[EI_ABIVERSION]);
+/**
+ * print_abiversion - prints an error message and exits
+ * @e_ident: the error message to print
+ */
+void print_abiversion(const unsigned char *e_ident)
+{
+	printf("  ABI Version:                       %u\n", e_ident[EI_ABIVERSION]);
+}
 
+/**
+ * print_type - prints an error message and exits
+ * @e_type: the error message to print
+ */
+void print_type(uint16_t e_type)
+{
 	printf("  Type:                              ");
-	switch (header->e_type)
+	switch (e_type)
 	{
 	case ET_REL:
 		printf("REL (Relocatable file)\n");
@@ -90,14 +140,43 @@ void print_elf_header(const Elf64_Ehdr *header)
 		printf("DYN (Shared object file)\n");
 		break;
 	default:
-		printf("<unknown: %04x>\n", header->e_type);
+		printf("<unknown: %04x>\n", e_type);
 		break;
 	}
-
-	printf("  Entry point address:               0x%" PRIx64 "\n",
-		   header->e_entry);
 }
 
+/**
+ * print_entry - prints an error message and exits
+ * @e_entry: the error message to print
+ */
+void print_entry(uint64_t e_entry)
+{
+	printf("  Entry point address:               0x%" PRIx64 "\n", e_entry);
+}
+
+/**
+ * print_elf_header - prints an error message and exits
+ * @header: the error message to print
+ */
+void print_elf_header(const Elf64_Ehdr *header)
+{
+	print_magic(header->e_ident);
+	print_class(header->e_ident);
+	print_data(header->e_ident);
+	print_version(header->e_ident);
+	print_osabi(header->e_ident);
+	print_abiversion(header->e_ident);
+	print_type(header->e_type);
+	print_entry(header->e_entry);
+}
+
+/**
+ * main - copies the content of a file to another file
+ *
+ * @argc: the number of arguments
+ * @argv: the arguments
+ * Return: 0 on success and -1 on failure
+ */
 int main(int argc, char *argv[])
 {
 	const char *filename;
