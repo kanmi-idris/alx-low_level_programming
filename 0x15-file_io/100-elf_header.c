@@ -1,95 +1,159 @@
-#include <elf.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-int main(int argc, char *argv[])
+#define ELF_MAGIC_SIZE 16
+
+typedef struct
 {
-	if (argc != 2)
-	{
-		fprintf(stderr, "Usage: %s elf_filename\n", argv[0]);
-		exit(1);
-	}
+	unsigned char magic[ELF_MAGIC_SIZE];
+	unsigned char class;
+	unsigned char data;
+	unsigned char version;
+	unsigned char os_abi;
+	unsigned char abi_version;
+	unsigned char pad[7];
+	unsigned short type;
+	unsigned short machine;
+	unsigned int version2;
+	unsigned int entry_point_high;
+	unsigned int entry_point_low;
+	unsigned int ph_offset;
+	unsigned int sh_offset;
+	unsigned int flags;
+	unsigned short eh_size;
+	unsigned short ph_entry_size;
+	unsigned short ph_num;
+	unsigned short sh_entry_size;
+	unsigned short sh_num;
+	unsigned short sh_str_index;
+} ElfHeader;
 
-	FILE *fp = fopen(argv[1], "rb");
-	if (fp == NULL)
-	{
-		fprintf(stderr, "Could not open file '%s'\n", argv[1]);
-		exit(1);
-	}
+void print_error(const char *message)
+{
+	fprintf(stderr, "Error: %s\n", message);
+	exit(98);
+}
 
-	Elf64_Ehdr ehdr;
-	if (fread(&ehdr, sizeof(ehdr), 1, fp) != 1)
-	{
-		fprintf(stderr, "Could not read ELF header from file '%s'\n", argv[1]);
-		exit(1);
-	}
-
-	if (ehdr.e_ident[EI_MAG0] != ELFMAG0 || ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
-		ehdr.e_ident[EI_MAG2] != ELFMAG2 || ehdr.e_ident[EI_MAG3] != ELFMAG3)
-	{
-		fprintf(stderr, "File '%s' is not an ELF file\n", argv[1]);
-		exit(98);
-	}
+void print_elf_header(const ElfHeader *header)
+{
+	int i;
 
 	printf("ELF Header:\n");
-	printf("  Magic:   ");
-	for (int i = 0; i < EI_NIDENT; i++)
+	printf("  Magic:");
+	for (i = 0; i < ELF_MAGIC_SIZE; ++i)
 	{
-		printf("%02x ", ehdr.e_ident[i]);
+		printf(" %02x", header->magic[i]);
 	}
 	printf("\n");
 
-	printf("Class:");
-	switch (ehdr.e_class)
+	printf("  Class:                             ");
+	switch (header->class)
 	{
-	case ELFCLASS64:
-		printf("ELF64\n");
-		break;
-	case ELFCLASS32:
+	case 1:
 		printf("ELF32\n");
 		break;
+	case 2:
+		printf("ELF64\n");
+		break;
 	default:
-		printf("Unknown\n");
+		printf("<unknown: %02x>\n", header->class);
 		break;
 	}
 
-	printf("Data:");
-	switch (ehdr.e_data)
+	printf("  Data:                              ");
+	switch (header->data)
 	{
-	case ELFDATA2LSB:
+	case 1:
 		printf("2's complement, little endian\n");
 		break;
-	case ELFDATA2MSB:
+	case 2:
 		printf("2's complement, big endian\n");
 		break;
 	default:
-		printf("Unknown\n");
+		printf("<unknown: %02x>\n", header->data);
 		break;
 	}
 
-	printf("  Version:%d (current)\n", ehdr.e_version);
-	printf("  OS/ABI:%d\n", ehdr.e_osabi);
-	printf("  ABI Version:%d\n", ehdr.e_abiversion);
-	printf("  Type:");
-	switch (ehdr.e_type)
+	printf("  Version:                           %u (current)\n",
+		   header->version);
+
+	printf("  OS/ABI:                            ");
+	switch (header->os_abi)
 	{
-	case ET_EXEC:
-		printf("EXEC (Executable file)\n");
+	case 0:
+		printf("UNIX - System V\n");
 		break;
-	case ET_DYN:
-		printf("DYN (Shared object file)\n");
+	case 3:
+		printf("UNIX - NetBSD\n");
 		break;
-	case ET_REL:
-		printf("REL (Relocatable file)\n");
+	case 6:
+		printf("UNIX - Solaris\n");
 		break;
 	default:
-		printf("Unknown\n");
+		printf("<unknown: %02x>\n", header->os_abi);
 		break;
 	}
 
-	printf("  Entry point address:               %#x\n", ehdr.e_entry);
+	printf("  ABI Version:                       %u\n", header->abi_version);
 
-	fclose(fp);
+	printf("  Type:                              ");
+	switch (header->type)
+	{
+	case 1:
+		printf("REL (Relocatable file)\n");
+		break;
+	case 2:
+		printf("EXEC (Executable file)\n");
+		break;
+	case 3:
+		printf("DYN (Shared object file)\n");
+		break;
+	default:
+		printf("<unknown: %04x>\n", header->type);
+		break;
+	}
 
-	return (0);
+	printf("  Entry point address:               0x%08x%08x\n",
+		   header->entry_point_high, header->entry_point_low);
+}
+
+int main(int argc, char *argv[])
+{
+	const char *filename;
+	int fd;
+	ElfHeader header;
+	unsigned char elf_magic[] = {0x7F, 'E', 'L', 'F'};
+
+	if (argc != 2)
+	{
+		print_error("Usage: elf_header elf_filename");
+	}
+
+	filename = argv[1];
+	fd = open(filename, O_RDONLY);
+	if (fd == -1)
+	{
+		print_error("Failed to open the file");
+	}
+
+	if (read(fd, &header, sizeof(ElfHeader)) != sizeof(ElfHeader))
+	{
+		close(fd);
+		print_error("Failed to read ELF header");
+	}
+
+	/* Verify the ELF magic number */
+	if (memcmp(header.magic, elf_magic, ELF_MAGIC_SIZE) != 0)
+	{
+		close(fd);
+		print_error("Not an ELF file");
+	}
+
+	print_elf_header(&header);
+
+	close(fd);
+	return 0;
 }
