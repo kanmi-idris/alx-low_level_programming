@@ -9,20 +9,12 @@
 #define ELF_MAGIC_SIZE 16
 #define UNKNOWN "<unknown: %02x>\n"
 
-/**
- * print_error - prints an error message and exits
- * @message: the error message to print
- */
 void print_error(const char *message)
 {
 	perror(message);
 	exit(98);
 }
 
-/**
- * print_magic - prints an error message and exits
- * @e_ident: the error message to print
- */
 void print_magic(const unsigned char *e_ident)
 {
 	int i;
@@ -36,10 +28,6 @@ void print_magic(const unsigned char *e_ident)
 	printf("\n");
 }
 
-/**
- * print_class - prints an error message and exits
- * @e_ident: the error message to print
- */
 void print_class(const unsigned char *e_ident)
 {
 	printf("  Class:                             ");
@@ -57,10 +45,6 @@ void print_class(const unsigned char *e_ident)
 	}
 }
 
-/**
- * print_data - prints an error message and exits
- * @e_ident: the error message to print
- */
 void print_data(const unsigned char *e_ident)
 {
 	printf("  Data:                              ");
@@ -78,20 +62,12 @@ void print_data(const unsigned char *e_ident)
 	}
 }
 
-/**
- * print_version - prints an error message and exits
- * @e_ident: the error message to print
- */
 void print_version(const unsigned char *e_ident)
 {
 	printf("  Version:                           %u (current)\n",
 		   e_ident[EI_VERSION]);
 }
 
-/**
- * print_osabi - prints an error message and exits
- * @e_ident: the error message to print
- */
 void print_osabi(const unsigned char *e_ident)
 {
 	printf("  OS/ABI:                            ");
@@ -112,19 +88,11 @@ void print_osabi(const unsigned char *e_ident)
 	}
 }
 
-/**
- * print_abiversion - prints an error message and exits
- * @e_ident: the error message to print
- */
 void print_abiversion(const unsigned char *e_ident)
 {
 	printf("  ABI Version:                       %u\n", e_ident[EI_ABIVERSION]);
 }
 
-/**
- * print_type - prints an error message and exits
- * @e_type: the error message to print
- */
 void print_type(uint16_t e_type)
 {
 	printf("  Type:                              ");
@@ -145,19 +113,11 @@ void print_type(uint16_t e_type)
 	}
 }
 
-/**
- * print_entry - prints an error message and exits
- * @e_entry: the error message to print
- */
 void print_entry(uint64_t e_entry)
 {
 	printf("  Entry point address:               0x%" PRIx64 "\n", e_entry);
 }
 
-/**
- * print_elf_header - prints an error message and exits
- * @header: the error message to print
- */
 void print_elf_header(const Elf64_Ehdr *header)
 {
 	print_magic(header->e_ident);
@@ -170,24 +130,17 @@ void print_elf_header(const Elf64_Ehdr *header)
 	print_entry(header->e_entry);
 }
 
-/**
- * main - copies the content of a file to another file
- *
- * @argc: the number of arguments
- * @argv: the arguments
- * Return: 0 on success and -1 on failure
- */
 int main(int argc, char *argv[])
 {
 	const char *filename;
 	int fd;
+	unsigned char elf_magic[] = {0x7F, 'E', 'L', 'F'};
 	union
 	{
-		Elf32_Ehdr ehdr32;
-		Elf64_Ehdr ehdr64;
+		unsigned char buffer[sizeof(Elf64_Ehdr)];
+		Elf32_Ehdr *ehdr32;
+		Elf64_Ehdr *ehdr64;
 	} header;
-
-	unsigned char elf_magic[] = {0x7F, 'E', 'L', 'F'};
 
 	if (argc != 2)
 	{
@@ -207,28 +160,27 @@ int main(int argc, char *argv[])
 		print_error("Failed to read ELF header");
 	}
 
+	close(fd);
+
 	/* Verify the ELF magic number */
-	if (memcmp(header.ehdr64.e_ident, elf_magic, ELF_MAGIC_SIZE) != 0)
+	if (memcmp(header.buffer, elf_magic, ELF_MAGIC_SIZE) != 0)
 	{
-		close(fd);
 		print_error("Not an ELF file");
 	}
 
 	/* Print the ELF header depending on the class */
-	if (header.ehdr64.e_ident[EI_CLASS] == ELFCLASS32)
+	if (header.buffer[EI_CLASS] == ELFCLASS32)
 	{
-		print_elf_header((Elf64_Ehdr *)&header.ehdr32);
+		print_elf_header((Elf64_Ehdr *)header.ehdr32);
 	}
-	else if (header.ehdr64.e_ident[EI_CLASS] == ELFCLASS64)
+	else if (header.buffer[EI_CLASS] == ELFCLASS64)
 	{
-		print_elf_header(&header.ehdr64);
+		print_elf_header(header.ehdr64);
 	}
 	else
 	{
-		close(fd);
 		print_error("Unknown ELF class");
 	}
 
-	close(fd);
 	return (0);
 }
